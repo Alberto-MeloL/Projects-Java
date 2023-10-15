@@ -142,6 +142,9 @@ public class TodoList extends JFrame {
             deleteTask();
         });
 
+        //adiciona um ouvinte de duplo click para marcar como concluída
+        
+
         // marcando como concluida
         markDoneButton.addActionListener(e -> {
             markTaskDone();
@@ -250,7 +253,7 @@ public class TodoList extends JFrame {
     // método que atualiza a lista
     private void updateTaskList() {
         // atualiza a lista de tasks exibida na GUI
-        Icon greenCheck = new ImageIcon("/img/check.png");
+        Icon greenCheck = new ImageIcon("./img/check.png");
         listModel.clear();
         for (Task task : tasks) {
             listModel.addElement(task.getDescription() + (task.isDone() ? greenCheck : ""));
