@@ -26,4 +26,6 @@ public class Task {
     public void setDone(boolean done) {
         this.done = done;
     }
+
 }
+

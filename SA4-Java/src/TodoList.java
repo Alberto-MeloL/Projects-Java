@@ -1,22 +1,27 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
 
 import javax.swing.DefaultListModel;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -24,19 +29,25 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-
 //clase
 public class TodoList extends JFrame {
 
+    // declarando cores para serem usadas para estilização
+    private Color corVermelhoClaro = new Color(255, 200, 200);
+    private Color corBranca = new Color(255, 255, 255);
+    private Color corVerdeCobre = new Color(82, 127, 118);
+    private Color corVerdeClara = new Color(144, 238, 144);
+    private Color corAzul = new Color(0, 0, 37);
+    private Color corAmarela = new Color(238, 223, 0);
+    private Color corCinzaclaro = new Color(205, 205, 205);
     // atributos
-    private Color corVermelhoClaro = new Color(255, 200, 200);// cor da input(erro)
-    private Color corBranca = new Color(255, 255, 255);// voltar ao padrão
     private JPanel mainPanel;// painel principal(janela)
     private JTextField taskInputField;// input para descrição das tarefas
     private JButton addButton;// botão de adicionar tarefas
     private JButton deleteButton;// botão de deletar tarefas
     private JButton markDoneButton;// marcar como concluída
     private JButton clearCompletedButton;// limpa todas as concluídas
+    private JButton shortcutsButton;// exibe os atalhos
     private JComboBox<String> filterComboBox;// filtrar tarefas
     private DefaultListModel<String> listModel;
     private JList<String> taskList;
@@ -45,6 +56,15 @@ public class TodoList extends JFrame {
     // construtor
     public TodoList() {
         super("To-Do List App");
+        SwingUtilities.invokeLater(() -> {
+            setGlobalFont();
+            setGlobalTextColor(corAzul);
+        });
+        this.setBounds(600, 330, 600, 600);// alihamento/tamanho
+
+        // intruções
+        this.shortcutsButton();
+        // tratando fechamentos da janela
         this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);// interrompe o comportamento padrão da janela
         this.addWindowListener(new WindowAdapter() {
             @Override
@@ -58,7 +78,6 @@ public class TodoList extends JFrame {
                 }
             }
         });
-        this.setBounds(600, 330, 600, 600);// alihamento/tamanho
 
         // inicializa a painel principal
         mainPanel = new JPanel();
@@ -72,10 +91,29 @@ public class TodoList extends JFrame {
         // inicializa campos de entrada, botões e JCcomboBox
         taskInputField = new JTextField();
         filterComboBox = new JComboBox<>(new String[] { "Todas", "Ativas", "Concluídas" });
+
+        // estilização filterComboBox
+        filterComboBox.setBackground(corBranca);
+
         addButton = new JButton("Adicionar");
+        // estilização addButton
+        addButton.setBackground(corAmarela);
+
         deleteButton = new JButton("Excluir");
+        // estilização deleteButton
+        deleteButton.setBackground(corVermelhoClaro);
+
         clearCompletedButton = new JButton("Limpar Concluídas");
+        // estilização clearCompletedButton
+        clearCompletedButton.setBackground(corVerdeCobre);
+
         markDoneButton = new JButton("Concluir");
+        // estilização markDoneButton
+        markDoneButton.setBackground(corVerdeClara);
+
+        shortcutsButton = new JButton("Atalhos");
+        // estilização shortcutsButton
+        shortcutsButton.setBackground(corCinzaclaro);
 
         // configuração do painel de entrada
         JPanel inputPanel = new JPanel(new BorderLayout());
@@ -88,6 +126,7 @@ public class TodoList extends JFrame {
         buttonPanel.add(markDoneButton);
         buttonPanel.add(filterComboBox);
         buttonPanel.add(clearCompletedButton);
+        buttonPanel.add(shortcutsButton);
 
         // adiciona os componente à janela principal
         mainPanel.add(inputPanel, BorderLayout.NORTH);
@@ -97,7 +136,6 @@ public class TodoList extends JFrame {
         this.add(mainPanel);
 
         // configuração de listener para os eventos
-
         // ouvintes do evento do mouse
         taskList.addMouseListener(new MouseAdapter() {
             @Override
@@ -113,8 +151,10 @@ public class TodoList extends JFrame {
             }
         });
 
-        // adiciona um ouvinte de teclado para JTextField, para adicionar com a tecla CTRL + B
-        //tem que ser dentor do construtor para que seja executada durante a inicialização
+        // adiciona um ouvinte de teclado para JTextField, para adicionar com a tecla
+        // CTRL + B
+        // tem que ser dentro do construtor para que seja executada durante a
+        // inicialização
         taskInputField.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -123,36 +163,60 @@ public class TodoList extends JFrame {
                 }
             }
         });
+
+        // marcando como concluída com duplo click
+        taskList.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    markTaskDone();
+                }
+            }
+        });
+
+        // marcando como concluida por botão
+        markDoneButton.addActionListener(e -> {
+            markTaskDone();
+        });
+
         // adicionando à lista ao clicar no botão
         addButton.addActionListener(e -> {
             addTask();
         });
-        // Adiciona ouvinte de teclado para deletar com CTRL + DELETE
 
-        TodoList.this.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e){
-                if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_DELETE) {
-                    deleteTask();
-                }
-            }
-        });
-        // deletando da lista
+        // deletando da lista por botão
         deleteButton.addActionListener(e -> {
             deleteTask();
         });
 
-        //adiciona um ouvinte de duplo click para marcar como concluída
-        
-
-        // marcando como concluida
-        markDoneButton.addActionListener(e -> {
-            markTaskDone();
+        // deletando da lista por CTRL + D
+        taskList.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_D) {
+                    deleteTask();
+                }
+            }
         });
-        // por tecla
-        // deletando concluidas
+
+        // deletando concluidas por botão
         clearCompletedButton.addActionListener(e -> {
             clearCompletedTasks();
+        });
+
+        // deletando concluídas por CTRL + A
+        taskList.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_A) {
+                    clearCompletedTasks();
+                }
+            }
+        });
+
+        // atalhos
+        shortcutsButton.addActionListener(e -> {
+            shortcutsButton();
         });
 
     }
@@ -175,7 +239,19 @@ public class TodoList extends JFrame {
             taskInputField.requestFocus();
             updateTaskList();// atualiza a lista
         }
+        // ouvinte do ComboBox
+        filterComboBox.addActionListener(e -> {
+            String selectedFilter = (String) filterComboBox.getSelectedItem();
+            listModel.clear();// limpa o modelo da lista
 
+            for (Task task : tasks) {
+                if (selectedFilter.equals("Todas") || (selectedFilter.equals("Ativas") && !task.isDone())
+                        || (selectedFilter.equals("Concluídas")) && task.isDone()) {
+                    listModel.addElement(task.getDescription());
+                    updateTaskList();
+                }
+            }
+        });
     }
 
     // método de deletar tarefas
@@ -196,20 +272,7 @@ public class TodoList extends JFrame {
         if (selectedIndexTask >= 0 && selectedIndexTask < tasks.size()) {
             Task selectedTask = tasks.get(selectedIndexTask);
             selectedTask.setDone(true);
-            updateTaskList();
         }
-        // marca a task selecionada como concluída
-        String filter = (String) filterComboBox.getSelectedItem();
-        listModel.clear();
-        for (Task task : tasks) {
-            if (filter.equals("Todas") || (filter.equals("Ativas") && !task.isDone())) {
-                listModel.addElement(task.getDescription());
-                List<Task> markDone = new ArrayList<>();
-                markDone.add(task);
-            } else if (filter.equals("Concluídas")) {
-                updateTaskList();// atualiza para exibir a lista
-            }
-        } // por tecla ctrl + s
     }
 
     // método de limpar as concluídas
@@ -253,11 +316,68 @@ public class TodoList extends JFrame {
     // método que atualiza a lista
     private void updateTaskList() {
         // atualiza a lista de tasks exibida na GUI
-        Icon greenCheck = new ImageIcon("./img/check.png");
+        String selected = (String) filterComboBox.getSelectedItem();
+
         listModel.clear();
+
         for (Task task : tasks) {
-            listModel.addElement(task.getDescription() + (task.isDone() ? greenCheck : ""));
+            boolean taskFilter = false;
+
+            if (selected.equals("Todas") ||
+                    (selected.equals("Ativas") && !task.isDone()) ||
+                    (selected.equals("Concluídas") && task.isDone())) {
+                taskFilter = true;
+            }
+            if (taskFilter) {
+                // adicione ✓ à descrição apenas para tarefas concluídas
+                if (task.isDone() && selected.equals("Concluídas")) {
+                    listModel.addElement(task.getDescription() + "  ✓");
+                } else {
+                    listModel.addElement(task.getDescription());
+                }
+            }
         }
+
+    }
+
+    // instruções
+    private void shortcutsButton() {
+
+        String messageShortcuts = "Adicionar tarefa:\nCTRL + B\n\nMarcar como conluída:\nDuplo click sobre uma tarefa\n\nDeletar tarefa:\nApós selecionada, pressione CTRL + D\n\nDeletar todas as concluídas:\nSelecione qualquer item da lista e pressione CTRL + A";
+        String titleShortcuts = "Atalhos";
+        JDialog dialog = new JDialog();
+        JOptionPane.showMessageDialog(dialog, messageShortcuts, titleShortcuts, JOptionPane.WARNING_MESSAGE);
+    }
+
+    // definido globalmente
+    private static void setGlobalFont() {
+        Font customFont = new Font("Arial", Font.PLAIN, 16);
+
+        // configura a fonte global para os componentes Swing
+        UIManager.put("Button.font", customFont);
+        UIManager.put("Label.font", customFont);
+        UIManager.put("TextField.font", customFont);
+        UIManager.put("TextArea.font", customFont);
+        UIManager.put("ComboBox.font", customFont);
+
+        // recarrega o UI
+        for (Component c : JFrame.getFrames()) {
+            SwingUtilities.updateComponentTreeUI(c);
+        }
+    }
+
+    private static void setGlobalTextColor(Color color) {
+        UIManager.put("Button.foreground", color);
+        UIManager.put("Label.foreground", color);
+        UIManager.put("TextField.foreground", color);
+        UIManager.put("TextArea.foreground", color);
+        UIManager.put("ComboBox.foreground", color);
+
+        // recarrega o UI
+        for (Component c : JFrame.getFrames()) {
+            SwingUtilities.updateComponentTreeUI(c);
+        }
+
     }
 
     // deixando a janela visivel
