@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -14,6 +13,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.Timer;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -21,6 +21,7 @@ import java.awt.Font;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -345,8 +346,19 @@ public class TodoList extends JFrame {
 
         String messageShortcuts = "Adicionar tarefa:\nCTRL + B\n\nMarcar como conluída:\nDuplo click sobre uma tarefa\n\nDeletar tarefa:\nApós selecionada, pressione CTRL + D\n\nDeletar todas as concluídas:\nSelecione qualquer item da lista e pressione CTRL + A";
         String titleShortcuts = "Atalhos";
+
         JDialog dialog = new JDialog();
         JOptionPane.showMessageDialog(dialog, messageShortcuts, titleShortcuts, JOptionPane.WARNING_MESSAGE);
+
+        int delay = 5000; // 5 segundos
+        Timer timer = new Timer(delay, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dialog.dispose();
+            }
+        });
+        timer.setRepeats(false); // para que seja executado apenas uma vez
+        timer.start();
     }
 
     // definido globalmente
