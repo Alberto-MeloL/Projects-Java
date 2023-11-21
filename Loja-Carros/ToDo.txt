@@ -1,0 +1,21 @@
+        Estrutura do projeto
+-Model;
+-View;
+-Controller;
+
+            Início
+1-Criar os métodos da ConnectionDAO:
+    |-Criar tabela, excluir, inserir dados, buscar,filtar, listar todos;
+2-Estabelecer as conexões com o banco de dados:
+    |-Gerenciar as conexões, abrir e fecha-las;
+
+
+            Meio
+3-Criar as lógicas de vendas, cadastros de novos carros, clientes, funcionários e exclusões;
+4-Gerar histórico de vendas, cadastros e exclusões;
+5-Criar um  terminal para cada cliente contendo, usuário e senha;
+    |-sendo registrados nos históricos de vendas, cadastros e exclusões, quem foi o funcionário que realizou tal ação;
+
+
+            Fim
+6-Entregar o projeto funcionando, com boas praticas de programação, com boa experiência ao usuário(funcionário);

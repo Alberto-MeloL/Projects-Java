@@ -14,6 +14,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.Timer;
+import javax.swing.TransferHandler;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -56,23 +57,30 @@ public class TodoList extends JFrame {
 
     // construtor
     public TodoList() {
+
         super("To-Do List App");
-        SwingUtilities.invokeLater(() -> {
+
+        SwingUtilities.invokeLater(() -> { // definindo configurações globais (projeto todo)
             setGlobalFont();
             setGlobalTextColor(corAzul);
         });
-        this.setBounds(600, 330, 600, 600);// alihamento/tamanho
+        this.setBounds(750, 330, 600, 600);// alihamento/tamanho
 
-        // intruções
+        // intruções de atalhos
         this.shortcutsButton();
+
         // tratando fechamentos da janela
         this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);// interrompe o comportamento padrão da janela
-        this.addWindowListener(new WindowAdapter() {
+        this.addWindowListener(new WindowAdapter() { // Evento de Janela
             @Override
             public void windowClosing(WindowEvent e) {
-                int escolhaWindow = JOptionPane.showConfirmDialog(TodoList.this, "Deseja realmente fechar a janela?",
+                int escolhaWindow = JOptionPane.showConfirmDialog(TodoList.this, "Deseja realmente fechar a janela?", // this
+                                                                                                                      // ele
+                                                                                                                      // referenciando
+                                                                                                                      // ao
+                                                                                                                      // frame
                         "Confirmação", JOptionPane.YES_NO_OPTION);// fecha ou não, conforme a escolha
-                if (escolhaWindow == JOptionPane.YES_OPTION) {
+                if (escolhaWindow == JOptionPane.YES_OPTION) { // usuário clicando em yes, janela irá fechar
                     setVisible(false);
                 } else {
                     taskInputField.requestFocus();
@@ -82,12 +90,12 @@ public class TodoList extends JFrame {
 
         // inicializa a painel principal
         mainPanel = new JPanel();
-        mainPanel.setLayout(new BorderLayout());
+        mainPanel.setLayout(new BorderLayout());// perguntar
 
         // inicializa a lista de tasks e a lista de tasks concluídas
-        tasks = new ArrayList<>();
+        tasks = new ArrayList<>();// Seria cada índice
         listModel = new DefaultListModel<>();
-        taskList = new JList<>(listModel);
+        taskList = new JList<>(listModel);// exibe na interface Gráfica
 
         // inicializa campos de entrada, botões e JCcomboBox
         taskInputField = new JTextField();
@@ -123,6 +131,7 @@ public class TodoList extends JFrame {
 
         // configuração do painel de botões
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        buttonPanel.setBackground(corBranca);
         buttonPanel.add(deleteButton);
         buttonPanel.add(markDoneButton);
         buttonPanel.add(filterComboBox);
@@ -159,7 +168,8 @@ public class TodoList extends JFrame {
         taskInputField.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_B) {
+                if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_B) { // Se Control + B for verdadeiro, adiciona
+                                                                            // task
                     addTask();
                 }
             }
@@ -169,7 +179,7 @@ public class TodoList extends JFrame {
         taskList.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) {
+                if (e.getClickCount() == 2) {// Se houver 2 clicks, marca como concluída
                     markTaskDone();
                 }
             }
@@ -185,6 +195,10 @@ public class TodoList extends JFrame {
             addTask();
         });
 
+        // taskList.setDragEnabled(true);
+        // int itemDrag = taskList.getSelectedIndex();
+        // // itemDrag.setTransferHandler();
+
         // deletando da lista por botão
         deleteButton.addActionListener(e -> {
             deleteTask();
@@ -194,7 +208,7 @@ public class TodoList extends JFrame {
         taskList.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_D) {
+                if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_D) {//Se Control + d, deleta a task
                     deleteTask();
                 }
             }
@@ -209,7 +223,7 @@ public class TodoList extends JFrame {
         taskList.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_A) {
+                if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_A) { // Se Control + a, limpa as Concluídas
                     clearCompletedTasks();
                 }
             }
@@ -231,7 +245,6 @@ public class TodoList extends JFrame {
             JOptionPane.showMessageDialog(null, "O campo não pode estar vazio!");
             taskInputField.requestFocus();
             taskInputField.setBackground(corVermelhoClaro);
-            return;// retorna rapidamente se o campo estiver vazio
         } else {
             Task newTask = new Task(taskDescription);
             tasks.add(newTask);
@@ -274,6 +287,7 @@ public class TodoList extends JFrame {
             Task selectedTask = tasks.get(selectedIndexTask);
             selectedTask.setDone(true);
         }
+        updateTaskList();
     }
 
     // método de limpar as concluídas
@@ -307,6 +321,7 @@ public class TodoList extends JFrame {
                     completedTasks.add(task);
                 }
             }
+            //Ele primeiro tem que adicionar para depois excluir
             tasks.removeAll(completedTasks);
             updateTaskList();// atualiza a lista
         } else if (escolha == JOptionPane.CANCEL_OPTION) {
@@ -344,7 +359,7 @@ public class TodoList extends JFrame {
     // instruções
     private void shortcutsButton() {
 
-        String messageShortcuts = "Adicionar tarefa:\nCTRL + B\n\nMarcar como conluída:\nDuplo click sobre uma tarefa\n\nDeletar tarefa:\nApós selecionada, pressione CTRL + D\n\nDeletar todas as concluídas:\nSelecione qualquer item da lista e pressione CTRL + A";
+        String messageShortcuts = "Adicionar tarefa:\nCTRL + B\n\nMarcar como concluída:\nDuplo click sobre uma tarefa\n\nDeletar tarefa:\nApós selecionada, pressione CTRL + D\n\nDeletar todas as concluídas:\nSelecione qualquer item da lista e pressione CTRL + A";
         String titleShortcuts = "Atalhos";
 
         JDialog dialog = new JDialog();
@@ -397,3 +412,8 @@ public class TodoList extends JFrame {
         this.setVisible(true);
     }
 }
+/*
+ * https://www.youtube.com/watch?v=uO-SuUhDI7k framework, api, js, java, php,
+ * lmr, conexão com banco de dados, fnz rapido, laravel crcvd, prazo, meta e
+ * entrega , angular front cheklist
+ */
