@@ -8,6 +8,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JOptionPane;
 import model.Carros;
 
 /*  Essa classe manipula conexões como banco de dados
@@ -34,7 +35,7 @@ public class CarrosDAO {
 
     public void criarTabela() {
 
-        String sqlCriarTabela = "CREATE TABLE IF NOT EXISTS carros_loja (ID SERIAL PRIMARY KEY,MARCA VARCHAR(255), MODELO VARCHAR(255), ANO VARCHAR(255), COR VARCHAR(255),PLACA VARCHAR(255),TIPO VARCHAR(255), PRECO VARCHAR(255))";
+        String sqlCriarTabela = "CREATE TABLE IF NOT EXISTS carros (ID SERIAL PRIMARY KEY,MARCA VARCHAR(255), MODELO VARCHAR(255), ANO VARCHAR(255),PLACA VARCHAR(255),VALOR VARCHAR(255))";
 
         try (Statement stmt = this.connection.createStatement()) {
             /* Ejetor de código SQL */
@@ -81,7 +82,7 @@ public class CarrosDAO {
     public void cadastrar(String marca, String modelo, String ano, String placa, String valor) {
         PreparedStatement stmt = null;
 
-        String sqlCadastrarCarro = "INSERT INTO carros_loja (marca, modelo, ano, placa, cor, preco, tipo) VALUES (?,?,?,?,?,?,?)";
+        String sqlCadastrarCarro = "INSERT INTO carros (marca, modelo, ano, placa, valor) VALUES (?,?,?,?,?)";
 
         try {
             stmt = connection.prepareStatement(sqlCadastrarCarro);
@@ -127,14 +128,20 @@ public class CarrosDAO {
     /* Apagar dados do banco */
 
     public void apagar(String placa) {
+        String message = "Deseja realmente deletar esse carro?";
         PreparedStatement stmt = null;
 
         String sqlApagarPelaPlaca = "DELETE FROM carros_loja WHERE placa = ?";
 
         try {
-            stmt = connection.prepareStatement(sqlApagarPelaPlaca);
+            int escolhaJO = JOptionPane.showConfirmDialog(null, message);
+            if (escolhaJO == JOptionPane.YES_OPTION) {
+                  stmt = connection.prepareStatement(sqlApagarPelaPlaca);
             stmt.setString(1, placa);
             stmt.executeUpdate();
+            }if (escolhaJO == JOptionPane.NO_OPTION) {
+                return;
+            }
             System.out.println("Placa apagada com sucesso");
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao deletar pela placa", e);

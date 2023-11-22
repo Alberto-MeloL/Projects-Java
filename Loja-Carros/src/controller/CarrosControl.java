@@ -19,10 +19,6 @@ public class CarrosControl {
         this.carros = carros;
         this.tableModel = tableModel;
         this.table = table;
-
-
-        new CarrosDAO().criarTabela();
-        atualizarTabela();
     }
 
     // Método para atualizar a tabela de exibição com dados do banco
