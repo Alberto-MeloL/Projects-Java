@@ -60,18 +60,16 @@ public class CarrosDAO {
             stmt = connection.prepareStatement("SELECT * FROM carros_loja");
             rs = stmt.executeQuery();
 
-            // while (rs.next()) {
-            //     Carros carro = new Carros(
-            //         rs.getString("marca"),
-            //         rs.getString("modelo"),
-            //     rs.getString("ano"),
-            //     rs.getString("cor"),
-            //     rs.getString("placa"),
-            //     rs.getString("tipo"),
-            //     rs.getString("preco"),
-            //     );
-            //     carros.add(carro);
-            // }
+            while (rs.next()) {
+                Carros carro = new Carros(
+                rs.getString("marca"),
+                rs.getString("modelo"),
+                rs.getString("ano"),
+                rs.getString("placa"),
+                rs.getString("valor")
+                );
+                carros.add(carro);
+            }
         } catch (SQLException e) {
             System.out.println(e);
         }finally{
@@ -80,8 +78,7 @@ public class CarrosDAO {
         return carros;
     }
 
-    public void cadastrar(String marca, String modelo, String ano, String placa, String cor, String preco,
-            String tipo) {
+    public void cadastrar(String marca, String modelo, String ano, String placa, String valor) {
         PreparedStatement stmt = null;
 
         String sqlCadastrarCarro = "INSERT INTO carros_loja (marca, modelo, ano, placa, cor, preco, tipo) VALUES (?,?,?,?,?,?,?)";
@@ -93,9 +90,7 @@ public class CarrosDAO {
             stmt.setString(2, modelo);
             stmt.setString(3, ano);
             stmt.setString(4, placa);
-            stmt.setString(5, cor);
-            stmt.setString(6, preco);
-            stmt.setString(7, tipo);
+            stmt.setString(5,valor);
             stmt.executeUpdate();
             System.out.println("Dados inseridos com sucesso");
 
@@ -107,11 +102,10 @@ public class CarrosDAO {
     }
     /* Atualizar dados no banco */
 
-    public void atualizar(String marca, String modelo, String ano, String placa, String cor, String preco,
-            String tipo) {
+    public void atualizar(String marca, String modelo, String ano, String placa, String valor) {
         PreparedStatement stmt = null;
 
-        String sqlAtualizarDados = "UPDATE carros_loja SET marca = ?, modelo = ?, ano = ?, cor = ?, preco = ?, tipo = ? WHERE placa = ?,";
+        String sqlAtualizarDados = "UPDATE carros_loja SET marca = ?, modelo = ?, ano = ?, valor = ?, WHERE placa = ?";
 
         try {
             stmt = connection.prepareStatement(sqlAtualizarDados);
@@ -119,9 +113,7 @@ public class CarrosDAO {
             stmt.setString(2, modelo);
             stmt.setString(3, ano);
             stmt.setString(4, placa);
-            stmt.setString(5, cor);
-            stmt.setString(6, preco);
-            stmt.setString(7, tipo);
+            stmt.setString(5, valor);
             stmt.executeUpdate();
 
             System.out.println("Dados atualizados com sucesso");
@@ -151,21 +143,20 @@ public class CarrosDAO {
         }
     }
 
-    // public void insertEmployee(String usuario, String senha) throws SQLException
-    // {
+    public void insertEmployee(String usuario, String senha) throws SQLException
+    {
 
-    // String sqlInsertEmployee = "INSERT INTO employee (USUARIO, SENHA) VALUES (?,
-    // ?)";
-    // PreparedStatement stmt = connection.prepareStatement(sqlInsertEmployee);
-    // try {
-    // stmt.setString(1, usuario);
-    // stmt.setString(2, senha);
-    // stmt.executeUpdate();
-    // System.out.println("Dados inseridos com sucesso.");
-    // } catch (Exception e) {
-    // throw new RuntimeException("Erro ao inserir dados.", e);
-    // } finally {
-    // ConnectionFactory.closeConnection(connection, stmt);
-    // }
-    // }
+    String sqlInsertEmployee = "INSERT INTO employee (USUARIO, SENHA) VALUES (?,?)";
+    PreparedStatement stmt = connection.prepareStatement(sqlInsertEmployee);
+    try {
+    stmt.setString(1, usuario);
+    stmt.setString(2, senha);
+    stmt.executeUpdate();
+    System.out.println("Dados inseridos com sucesso.");
+    } catch (Exception e) {
+    throw new RuntimeException("Erro ao inserir dados.", e);
+    } finally {
+    ConnectionFactory.closeConnection(connection, stmt);
+    }
+    }
 }
