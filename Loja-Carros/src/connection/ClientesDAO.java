@@ -1,151 +1,183 @@
-// package connection;
+package connection;
 
-// import model.Carros;
+import model.Clientes;
+import view.ClienteObserver;
+import view.JanelaCarros;
 
-// import java.sql.Connection;
-// import java.sql.SQLException;
-// import java.sql.PreparedStatement;
-// import java.sql.Statement;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
-// public class ClientesDAO {
+import javax.swing.JOptionPane;
 
-//     public ClientesDAO() {
-//           /* Métodos */
+public class ClientesDAO {
 
-//     public void criarTabela() {
+    private Connection connection;
+    private List<Clientes> clientes;
+    private List<ClienteObserver> observadores = new ArrayList<>();
 
-//         String sqlCriarTabela = "CREATE TABLE IF NOT EXISTS carros (ID SERIAL PRIMARY KEY,MARCA VARCHAR(255), MODELO VARCHAR(255), ANO VARCHAR(255),PLACA VARCHAR(255),VALOR VARCHAR(255))";
+    public ClientesDAO() {
 
-//         try (Statement stmt = this.connection.createStatement()) {
-//             /* Ejetor de código SQL */
+        this.connection = ConnectionFactory.getConnection();
+    }
+    /* Métodos */
 
-//             stmt.execute(sqlCriarTabela); /* Código a ser executado */
-//             System.out.println("Tabela criada com sucesso.");
-//         } catch (Exception e) {
-//             throw new RuntimeException("Erro ao criar a tabela:" + e.getMessage(), e);
-//         } finally {
-//             /* Fecha a conexão de qualquer maneira(sendo cathc ou não) */
-//             ConnectionFactory.closeConnection(this.connection);
-//         }
-//     }
+    public void adicionarObservador(ClienteObserver observador){
+        observadores.add(observador);
+    }
+    public void notificarObservadores(){
+        for (ClienteObserver observador : observadores) {
+            observador.atualizarClientes();
+        }
+    }
+    public void criarTabelaCliente() {
 
-//     /* Listar todos */
+        String sqlCriarTabelaCliente = "CREATE TABLE IF NOT EXISTS clientes (ID SERIAL PRIMARY KEY,NOME VARCHAR(255), CPF VARCHAR(255), IDADE VARCHAR(255),TELEFONE VARCHAR(255),ENDERECO VARCHAR(255))";
 
-//     public List<Carros> listarTodos(){
-//         PreparedStatement stmt = null;
-//         ResultSet rs = null;
-//         carros = new ArrayList<>();
+        try (Statement stmt = this.connection.createStatement()) {
+            /* Ejetor de código SQL */
 
-//         try {
-//             stmt = connection.prepareStatement("SELECT * FROM carros_loja");
-//             rs = stmt.executeQuery();
+            stmt.execute(sqlCriarTabelaCliente); /* Código a ser executado */
+            System.out.println("Tabela criada com sucesso.");
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao criar a tabela:" + e.getMessage(), e);
+        } finally {
+            /* Fecha a conexão de qualquer maneira(sendo cathc ou não) */
+            ConnectionFactory.closeConnection(this.connection);
+        }
+    }
 
-//             while (rs.next()) {
-//                 Carros carro = new Carros(
-//                 rs.getString("marca"),
-//                 rs.getString("modelo"),
-//                 rs.getString("ano"),
-//                 rs.getString("placa"),
-//                 rs.getString("valor")
-//                 );
-//                 carros.add(carro);
-//             }
-//         } catch (SQLException e) {
-//             System.out.println(e);
-//         }finally{
-//             ConnectionFactory.closeConnection(connection, stmt, rs);
-//         }
-//         return carros;
-//     }
+    public List<String> carregarClienteComboBox() {
+        List<Clientes> listarClientes = new ClientesDAO().listarTodosClientes();
+        List<String> comboBoxClientes = new ArrayList<>();
 
-//     public void cadastrar(String marca, String modelo, String ano, String placa, String valor) {
-//         PreparedStatement stmt = null;
+        for (Clientes clientes : listarClientes) {
+            comboBoxClientes.add(clientes.getNome());
+        }
+        return comboBoxClientes;
+    }
+    /* Listar todos */
 
-//         String sqlCadastrarCarro = "INSERT INTO carros (marca, modelo, ano, placa, valor) VALUES (?,?,?,?,?)";
+    public List<Clientes> listarTodosClientes() {
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        clientes = new ArrayList<>();
 
-//         try {
-//             stmt = connection.prepareStatement(sqlCadastrarCarro);
+        try {
+            stmt = connection.prepareStatement("SELECT * FROM clientes");
+            rs = stmt.executeQuery();
 
-//             stmt.setString(1, marca);
-//             stmt.setString(2, modelo);
-//             stmt.setString(3, ano);
-//             stmt.setString(4, placa);
-//             stmt.setString(5,valor);
-//             stmt.executeUpdate();
-//             System.out.println("Dados inseridos com sucesso");
+            while (rs.next()) {
+                Clientes cliente = new Clientes(
+                        rs.getString("nome"),
+                        rs.getString("cpf"),
+                        rs.getString("idade"),
+                        rs.getString("telefone"),
+                        rs.getString("endereco"));
+                clientes.add(cliente);
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        } finally {
+            ConnectionFactory.closeConnection(connection, stmt, rs);
+        }
+        return clientes;
+    }
 
-//         } catch (SQLException e) {
-//             throw new RuntimeException("Erro ao inserir dados.", e);
-//         } finally {
-//             ConnectionFactory.closeConnection(connection, stmt);
-//         }
-//     }
-//     /* Atualizar dados no banco */
+    public void cadastrarCliente(String nome, String cpf, String idade, String telefone, String endereco) {
+        PreparedStatement stmt = null;
 
-//     public void atualizar(String marca, String modelo, String ano, String placa, String valor) {
-//         PreparedStatement stmt = null;
+        String sqlCadastrarCliente = "INSERT INTO clientes (nome, cpf, idade, telefone, endereco) VALUES (?,?,?,?,?)";
 
-//         String sqlAtualizarDados = "UPDATE carros_loja SET marca = ?, modelo = ?, ano = ?, valor = ?, WHERE placa = ?";
+        try {
+            stmt = connection.prepareStatement(sqlCadastrarCliente);
 
-//         try {
-//             stmt = connection.prepareStatement(sqlAtualizarDados);
-//             stmt.setString(1, marca);
-//             stmt.setString(2, modelo);
-//             stmt.setString(3, ano);
-//             stmt.setString(4, placa);
-//             stmt.setString(5, valor);
-//             stmt.executeUpdate();
+            stmt.setString(1, nome);
+            stmt.setString(2, cpf);
+            stmt.setString(3, idade);
+            stmt.setString(4, telefone);
+            stmt.setString(5, endereco);
+            stmt.executeUpdate();
+            notificarObservadores();//Notoficar os observadores ao cadastrar um cliente
+            System.out.println("Dados inseridos com sucesso");
 
-//             System.out.println("Dados atualizados com sucesso");
-//         } catch (SQLException e) {
-//             throw new RuntimeException("Erro ao atualizar dados.", e);
-//         } finally {
-//             ConnectionFactory.closeConnection(connection, stmt);
-//         }
-//     }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao inserir dados.", e);
+        } finally {
+            ConnectionFactory.closeConnection(connection, stmt);
+        }
+    }
+    /* Atualizar dados no banco */
 
-//     /* Apagar dados do banco */
+    public void atualizarCliente(String nome, String cpf, String idade, String telefone, String endereco) {
+        PreparedStatement stmt = null;
 
-//     public void apagar(String placa) {
-//         String message = "Deseja realmente deletar esse carro?";
-//         PreparedStatement stmt = null;
+        String sqlAtualizarDadosCliente = "UPDATE clientes SET nome = ?, endereco = ?, idade = ?, telefone = ? WHERE cpf = ?";
 
-//         String sqlApagarPelaPlaca = "DELETE FROM carros_loja WHERE placa = ?";
+        try {
+            stmt = connection.prepareStatement(sqlAtualizarDadosCliente);
+            stmt.setString(1, nome);
+            stmt.setString(2, cpf);
+            stmt.setString(3, idade);
+            stmt.setString(4, telefone);
+            stmt.setString(5, endereco);
+            stmt.executeUpdate();
+            connection.setAutoCommit(true);
 
-//         try {
-//             int escolhaJO = JOptionPane.showConfirmDialog(null, message);
-//             if (escolhaJO == JOptionPane.YES_OPTION) {
-//                   stmt = connection.prepareStatement(sqlApagarPelaPlaca);
-//             stmt.setString(1, placa);
-//             stmt.executeUpdate();
-//             }if (escolhaJO == JOptionPane.NO_OPTION) {
-//                 return;
-//             }
-//             System.out.println("Placa apagada com sucesso");
-//         } catch (SQLException e) {
-//             throw new RuntimeException("Erro ao deletar pela placa", e);
-//         } finally {
-//             ConnectionFactory.closeConnection(connection, stmt);
-//         }
-//     }
+            System.out.println("Dados atualizados com sucesso");
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao atualizar dados.", e);
+        } finally {
+            ConnectionFactory.closeConnection(connection, stmt);
+        }
+    }
 
-//     public void insertEmployee(String usuario, String senha) throws SQLException
-//     {
+    /* Apagar dados do banco */
 
-//     String sqlInsertEmployee = "INSERT INTO employee (USUARIO, SENHA) VALUES (?,?)";
-//     PreparedStatement stmt = connection.prepareStatement(sqlInsertEmployee);
-//     try {
-//     stmt.setString(1, usuario);
-//     stmt.setString(2, senha);
-//     stmt.executeUpdate();
-//     System.out.println("Dados inseridos com sucesso.");
-//     } catch (Exception e) {
-//     throw new RuntimeException("Erro ao inserir dados.", e);
-//     } finally {
-//     ConnectionFactory.closeConnection(connection, stmt);
-//     }
-//     }
-// }
-// }
+    public void apagarCliente(String cpf) {
+        String message = "Deseja realmente deletar esse cliente?";
+        PreparedStatement stmt = null;
 
-// // 
+        String sqlApagarPeloCpf = "DELETE FROM clientes WHERE cpf = ?";
+
+        try {
+            int escolhaJO = JOptionPane.showConfirmDialog(null, message);
+            if (escolhaJO == JOptionPane.YES_OPTION) {
+                stmt = connection.prepareStatement(sqlApagarPeloCpf);
+                stmt.setString(1, cpf);
+                stmt.executeUpdate();
+                notificarObservadores();//Notificar observadores aoo apagar um cliente
+            }
+            if (escolhaJO == JOptionPane.NO_OPTION) {
+                return;
+            }
+            System.out.println("Cpf apagado com sucesso");
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao deletar pela placa", e);
+        } finally {
+            ConnectionFactory.closeConnection(connection, stmt);
+        }
+    }
+
+    public void insertEmployee(String usuario, String senha) throws SQLException {
+
+        String sqlInsertEmployee = "INSERT INTO employee (USUARIO, SENHA) VALUES (?,?)";
+        PreparedStatement stmt = connection.prepareStatement(sqlInsertEmployee);
+        try {
+            stmt.setString(1, usuario);
+            stmt.setString(2, senha);
+            stmt.executeUpdate();
+            System.out.println("Dados inseridos com sucesso.");
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao inserir dados.", e);
+        } finally {
+            ConnectionFactory.closeConnection(connection, stmt);
+        }
+    }
+}
+
+//

@@ -1,25 +1,37 @@
 package controller;
 
 import java.util.List;
+
+import javax.swing.JComboBox;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
 import connection.CarrosDAO;
+import connection.VendasDAO;
 import model.Carros;
 
 public class CarrosControl {
 
     // Atributos
+    private JComboBox<String> clientesComboBox;
     private List<Carros> carros;
     private DefaultTableModel tableModel;
     private JTable table;
 
-    public CarrosControl(List<Carros> carros, DefaultTableModel tableModel, JTable table) {
+    public CarrosControl(List<Carros> carros, DefaultTableModel tableModel, JTable table, JComboBox<String> clientesComboBox) {
 
         this.carros = carros;
         this.tableModel = tableModel;
         this.table = table;
+        this.clientesComboBox = clientesComboBox;
     }
+
+//Método para vender carros
+public void vender(String carroPlaca, String clienteCpf, String valor){
+    new VendasDAO().cadastrarVenda(carroPlaca, clienteCpf, valor);
+
+    
+}
 
     // Método para atualizar a tabela de exibição com dados do banco
     private void atualizarTabela() {
@@ -29,7 +41,7 @@ public class CarrosControl {
         // Obtém os carros atualizados do banco de dados
         for (Carros carro : carros) {
             // Adiciona os dados de cadda carro como uma nova linha na tabela Swing
-            tableModel.addRow(new Object[] { carro.getMarca(), carro.getModelo(), carro.getAno(),carro.getPlaca() });
+            tableModel.addRow(new Object[] { carro.getMarca(), carro.getModelo(), carro.getAno(),carro.getPlaca(), carro.getValor() });
         }
     }
 

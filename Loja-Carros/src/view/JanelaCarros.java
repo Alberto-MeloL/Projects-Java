@@ -6,6 +6,8 @@ import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
 import connection.CarrosDAO;
+import connection.ClientesDAO;
+import connection.VendasDAO;
 import controller.CarrosControl;
 
 import javax.swing.JTable;
@@ -20,26 +22,47 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import java.awt.GridLayout;
 
-public class JanelaCarros extends JPanel {
+public class JanelaCarros extends JPanel implements ClienteObserver{
+    @Override
+        public void atualizarClientes(){
+            //Atualiza a lista de clientes aqui na interface gráfica
+            //Chame o método para carregar os clientes no JComboBox
+            List<String>listarClientes = new ClientesDAO().carregarClienteComboBox();
 
-    private JButton cadastrar, apagar, editar;
+            clientesComboBox.removeAllItems();
+
+            for (String cliente : listarClientes) {
+                clientesComboBox.addItem(cliente);
+            }
+        }
+
+    private JButton cadastrar, apagar, editar, vender;
+    private JComboBox<String> clientesComboBox;
     private JTextField carMarcaField, carModeloField, carAnoField, carPlacaField, carValorField;
     private List<Carros> carros;
     private JTable table;
     private DefaultTableModel tableModel;
     private int linhaSelecionada = -1;
 
-    // Construtor(GUI-JPanel)
-    public JanelaCarros() {
+    public JanelaCarros() {// Construtor(GUI-JPanel)
         super();
         // entrada de dados
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         add(new JLabel("Cadastro Carros"));
         JPanel inputPanel = new JPanel();
-        inputPanel.setLayout(new GridLayout(5, 2));
+        clientesComboBox = new JComboBox<>();
+        inputPanel.add(new JLabel("Cliente"));
+        List<String> listarClientes = new ClientesDAO().carregarClienteComboBox();
+        for (String cliente : listarClientes) {
+            clientesComboBox.addItem(cliente);
+        }
+
+        inputPanel.add(clientesComboBox);
+        inputPanel.setLayout(new GridLayout(3, 3));
         inputPanel.add(new JLabel("Marca"));
         carMarcaField = new JTextField(20);
         inputPanel.add(carMarcaField);
@@ -60,6 +83,7 @@ public class JanelaCarros extends JPanel {
         botoes.add(cadastrar = new JButton("Cadastrar"));
         botoes.add(editar = new JButton("Editar"));
         botoes.add(apagar = new JButton("Apagar"));
+        botoes.add(vender = new JButton("Vender"));
         add(botoes);
         // tabela de carros
         JScrollPane jSPane = new JScrollPane();
@@ -69,9 +93,13 @@ public class JanelaCarros extends JPanel {
         table = new JTable(tableModel);
         jSPane.setViewportView(table);
 
+        //Cria a tabela 
         new CarrosDAO().criarTabela();
+        new VendasDAO().criarTabelaVendas();
         atualizarTabela();
+
         // Tratamento de eventos
+
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent evt) {
@@ -82,23 +110,40 @@ public class JanelaCarros extends JPanel {
                     carAnoField.setText((String) table.getValueAt(linhaSelecionada, 2));
                     carPlacaField.setText((String) table.getValueAt(linhaSelecionada, 3));
                     carValorField.setText((String) table.getValueAt(linhaSelecionada, 4));
+
+                    //Atualiza a tabela de exibição
+                    atualizarTabela();
+                    //Atualiza os campos de entrada
+                    atualizarCamposEntrada();
                 }
             }
         });
 
         // Cria um objeto operacoes da classe CarrosControl para executar operações no
         // banco de dados
-        CarrosControl operacoes = new CarrosControl(carros, tableModel, table);
+        CarrosControl operacoes = new CarrosControl(carros, tableModel, table, clientesComboBox);
 
-        // Configura a ação do botão "cadastrar" para adicionar um novo registro no
-        // banco
-        // de dados
+
+        // Configura a ação do botão "vender" para registrar uma venda
+        vender.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e){
+                String carroPlaca = carPlacaField.getText();
+                String clienteCpf = (String) clientesComboBox.getSelectedItem();
+                String valor = carValorField.getText();
+                operacoes.vender(carroPlaca, clienteCpf, valor);
+
+                carPlacaField.setText("");
+                carValorField.setText("");
+                atualizarTabela();
+                atualizarCamposEntrada();
+            }
+        });
+        // Configura a ação do botão "cadastrar" para adicionar um novo registro no banco de dados
         cadastrar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Chama o método "cadastrar" do objeto operacoes com os valores dos
-
-                // campos de entrada
+                // Chama o método "cadastrar" do objeto operacoes com os valores dos campos de entrada
 
                 operacoes.cadastrar(carMarcaField.getText(), carModeloField.getText(),
 
@@ -109,17 +154,18 @@ public class JanelaCarros extends JPanel {
                 carAnoField.setText("");
                 carPlacaField.setText("");
                 carValorField.setText("");
+                atualizarTabela();
+
+                //Atualiza os campos de entrada
+                atualizarCamposEntrada();
             }
         });
 
-        // Configura a ação do botão "editar" para atualizar um registro no banco de
-        // dados
+        // Configura a ação do botão "editar" para atualizar um registro no banco de dados
         editar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Chama o método "atualizar" do objeto operacoes com os valores dos
-
-                // campos de entrada
+                // Chama o método "atualizar" do objeto operacoes com os valores do campos de entrada
 
                 operacoes.atualizar(carMarcaField.getText(), carModeloField.getText(),
 
@@ -130,6 +176,10 @@ public class JanelaCarros extends JPanel {
                 carAnoField.setText("");
                 carPlacaField.setText("");
                 carValorField.setText("");
+                atualizarTabela();
+                //Atualiza os campos de entrada
+               atualizarCamposEntrada();
+
             }
         });
 
@@ -137,9 +187,7 @@ public class JanelaCarros extends JPanel {
         apagar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Chama o método "apagar" do objeto operacoes com o valor do campo de
-
-                // entrada "placa"
+                // Chama o método "apagar" do objeto operacoes com o valor do campo de entrada "placa"
 
                 operacoes.apagar(carPlacaField.getText());
                 // Limpa os campos de entrada após a operação de exclusão
@@ -148,9 +196,28 @@ public class JanelaCarros extends JPanel {
                 carAnoField.setText("");
                 carPlacaField.setText("");
                 carValorField.setText("");
+                atualizarTabela();
+
+                 //Atualiza os campos de entrada
+                atualizarCamposEntrada();
             }
         });
+
+    
     }
+
+    //Método para atualizar campos de entrada
+        private void atualizarCamposEntrada(){
+            if (linhaSelecionada != -1 && linhaSelecionada < carros.size()) {
+                Carros carrosSelecionados = carros.get(linhaSelecionada);
+                carMarcaField.setText(carrosSelecionados.getMarca());
+                carModeloField.setText(carrosSelecionados.getModelo());
+                carAnoField.setText(carrosSelecionados.getAno());
+                carPlacaField.setText(carrosSelecionados.getPlaca());
+                carValorField.setText(carrosSelecionados.getValor());
+                
+            }
+        }
 
     private void atualizarTabela() {
         tableModel.setRowCount(0);

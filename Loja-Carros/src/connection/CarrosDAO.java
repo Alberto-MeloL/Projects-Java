@@ -58,7 +58,7 @@ public class CarrosDAO {
         carros = new ArrayList<>();
 
         try {
-            stmt = connection.prepareStatement("SELECT * FROM carros_loja");
+            stmt = connection.prepareStatement("SELECT * FROM carros");
             rs = stmt.executeQuery();
 
             while (rs.next()) {
@@ -106,7 +106,7 @@ public class CarrosDAO {
     public void atualizar(String marca, String modelo, String ano, String placa, String valor) {
         PreparedStatement stmt = null;
 
-        String sqlAtualizarDados = "UPDATE carros_loja SET marca = ?, modelo = ?, ano = ?, valor = ?, WHERE placa = ?";
+        String sqlAtualizarDados = "UPDATE carros SET marca = ?, modelo = ?, ano = ?, valor = ? WHERE placa = ?";
 
         try {
             stmt = connection.prepareStatement(sqlAtualizarDados);
@@ -116,6 +116,7 @@ public class CarrosDAO {
             stmt.setString(4, placa);
             stmt.setString(5, valor);
             stmt.executeUpdate();
+            connection.setAutoCommit(true);
 
             System.out.println("Dados atualizados com sucesso");
         } catch (SQLException e) {
@@ -131,7 +132,7 @@ public class CarrosDAO {
         String message = "Deseja realmente deletar esse carro?";
         PreparedStatement stmt = null;
 
-        String sqlApagarPelaPlaca = "DELETE FROM carros_loja WHERE placa = ?";
+        String sqlApagarPelaPlaca = "DELETE FROM carros WHERE placa = ?";
 
         try {
             int escolhaJO = JOptionPane.showConfirmDialog(null, message);
