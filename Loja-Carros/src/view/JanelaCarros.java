@@ -28,19 +28,7 @@ import javax.swing.JOptionPane;
 
 import java.awt.GridLayout;
 
-public class JanelaCarros extends JPanel implements ClienteObserver {
-    @Override
-    public void atualizarClientes() {
-        // Atualiza a lista de clientes aqui na interface gráfica
-        // Chame o método para carregar os clientes no JComboBox
-        List<String> listarClientes = new ClientesDAO().carregarClienteComboBox();
-
-        clientesComboBox.removeAllItems();
-
-        for (String cliente : listarClientes) {
-            clientesComboBox.addItem(cliente);
-        }
-    }
+public class JanelaCarros extends JPanel {
 
     private JButton cadastrar, apagar, editar, vender;
     private JComboBox<String> clientesComboBox;
@@ -58,10 +46,7 @@ public class JanelaCarros extends JPanel implements ClienteObserver {
         JPanel inputPanel = new JPanel();
         clientesComboBox = new JComboBox<>();
         inputPanel.add(new JLabel("Cliente"));
-        List<String> listarClientes = new ClientesDAO().carregarClienteComboBox();
-        for (String cliente : listarClientes) {
-            clientesComboBox.addItem(cliente);
-        }
+        
 
         inputPanel.add(clientesComboBox);
         inputPanel.setLayout(new GridLayout(3, 3));
