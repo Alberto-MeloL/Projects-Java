@@ -3,10 +3,7 @@ package connection;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
 
 public class VendasDAO {
     private Connection connection;
@@ -15,7 +12,6 @@ public class VendasDAO {
         this.connection = ConnectionFactory.getConnection();
     }
 
-    
     public void criarTabelaVendas() {
 
         String sqlCriarTabelaVendas = "CREATE TABLE IF NOT EXISTS vendas (ID SERIAL PRIMARY KEY,PLACA VARCHAR(255), CPF VARCHAR(255), VALOR VARCHAR(255))";
@@ -34,18 +30,49 @@ public class VendasDAO {
     }
 
     public void cadastrarVenda(String carroPlaca, String clienteCpf, String valor) {
-        String sqlCadastrarVenda = "INSERT INTO vendas (carro_placa, cliente_cpf, valor) VALUES (?, ?, ?)";
-
-        try (PreparedStatement stmt = connection.prepareStatement(sqlCadastrarVenda)) {
-            stmt.setString(1, carroPlaca);
-            stmt.setString(2, clienteCpf);
-            stmt.setString(3, valor);
-            stmt.executeUpdate();
+        String sqlCadastrarVenda = "INSERT INTO vendas (placa, cpf, valor) VALUES (?, ?, ?)";
+        // deletar carro da tabela de carros após a venda
+        String sqlDeletarCarroVendido = "DELETE FROM carros WHERE placa = ?";
+    
+        try (PreparedStatement stmtVenda = connection.prepareStatement(sqlCadastrarVenda);
+             PreparedStatement stmtDeletarCarroVendido = connection.prepareStatement(sqlDeletarCarroVendido)) {
+    
+            // Desativa o autoCommit
+            connection.setAutoCommit(false);
+    
+            stmtVenda.setString(1, carroPlaca);
+            stmtVenda.setString(2, clienteCpf);
+            stmtVenda.setString(3, valor);
+            stmtVenda.executeUpdate();
             System.out.println("Venda registrada com sucesso");
+    
+            // Deletando o carro
+            stmtDeletarCarroVendido.setString(1, carroPlaca);
+            stmtDeletarCarroVendido.executeUpdate();
+    
+            System.out.println("Carro deletado com sucesso.");
+    
+            // Faz o commit manualmente
+            connection.commit();
+    
         } catch (SQLException e) {
+            try {
+                // Realiza o rollback em caso de exceção
+                connection.rollback();
+            } catch (SQLException rollbackException) {
+                throw new RuntimeException("Erro ao realizar rollback.", rollbackException);
+            }
             throw new RuntimeException("Erro ao cadastrar venda.", e);
         } finally {
-            ConnectionFactory.closeConnection(connection);
+            try {
+                // Ativa o autoCommit novamente e fecha a conexão
+                connection.setAutoCommit(true);
+                ConnectionFactory.closeConnection(connection);
+            } catch (SQLException closeException) {
+                throw new RuntimeException("Erro ao fechar a conexão.", closeException);
+            }
         }
     }
+    
+
 }

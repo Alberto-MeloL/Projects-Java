@@ -126,7 +126,7 @@ public class ClientesDAO {
             stmt.setString(4, telefone);
             stmt.setString(5, endereco);
             stmt.executeUpdate();
-            connection.setAutoCommit(true);
+            connection.commit();
 
             System.out.println("Dados atualizados com sucesso");
         } catch (SQLException e) {
@@ -163,21 +163,6 @@ public class ClientesDAO {
         }
     }
 
-    public void insertEmployee(String usuario, String senha) throws SQLException {
-
-        String sqlInsertEmployee = "INSERT INTO employee (USUARIO, SENHA) VALUES (?,?)";
-        PreparedStatement stmt = connection.prepareStatement(sqlInsertEmployee);
-        try {
-            stmt.setString(1, usuario);
-            stmt.setString(2, senha);
-            stmt.executeUpdate();
-            System.out.println("Dados inseridos com sucesso.");
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao inserir dados.", e);
-        } finally {
-            ConnectionFactory.closeConnection(connection, stmt);
-        }
-    }
 }
 
 //

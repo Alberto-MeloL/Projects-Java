@@ -24,21 +24,23 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+
 import java.awt.GridLayout;
 
-public class JanelaCarros extends JPanel implements ClienteObserver{
+public class JanelaCarros extends JPanel implements ClienteObserver {
     @Override
-        public void atualizarClientes(){
-            //Atualiza a lista de clientes aqui na interface gráfica
-            //Chame o método para carregar os clientes no JComboBox
-            List<String>listarClientes = new ClientesDAO().carregarClienteComboBox();
+    public void atualizarClientes() {
+        // Atualiza a lista de clientes aqui na interface gráfica
+        // Chame o método para carregar os clientes no JComboBox
+        List<String> listarClientes = new ClientesDAO().carregarClienteComboBox();
 
-            clientesComboBox.removeAllItems();
+        clientesComboBox.removeAllItems();
 
-            for (String cliente : listarClientes) {
-                clientesComboBox.addItem(cliente);
-            }
+        for (String cliente : listarClientes) {
+            clientesComboBox.addItem(cliente);
         }
+    }
 
     private JButton cadastrar, apagar, editar, vender;
     private JComboBox<String> clientesComboBox;
@@ -93,7 +95,7 @@ public class JanelaCarros extends JPanel implements ClienteObserver{
         table = new JTable(tableModel);
         jSPane.setViewportView(table);
 
-        //Cria a tabela 
+        // Cria a tabela
         new CarrosDAO().criarTabela();
         new VendasDAO().criarTabelaVendas();
         atualizarTabela();
@@ -111,9 +113,9 @@ public class JanelaCarros extends JPanel implements ClienteObserver{
                     carPlacaField.setText((String) table.getValueAt(linhaSelecionada, 3));
                     carValorField.setText((String) table.getValueAt(linhaSelecionada, 4));
 
-                    //Atualiza a tabela de exibição
+                    // Atualiza a tabela de exibição
                     atualizarTabela();
-                    //Atualiza os campos de entrada
+                    // Atualiza os campos de entrada
                     atualizarCamposEntrada();
                 }
             }
@@ -123,49 +125,149 @@ public class JanelaCarros extends JPanel implements ClienteObserver{
         // banco de dados
         CarrosControl operacoes = new CarrosControl(carros, tableModel, table, clientesComboBox);
 
-
         // Configura a ação do botão "vender" para registrar uma venda
         vender.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e){
-                String carroPlaca = carPlacaField.getText();
-                String clienteCpf = (String) clientesComboBox.getSelectedItem();
-                String valor = carValorField.getText();
-                operacoes.vender(carroPlaca, clienteCpf, valor);
 
-                carPlacaField.setText("");
-                carValorField.setText("");
-                atualizarTabela();
-                atualizarCamposEntrada();
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (linhaSelecionada != -1 && linhaSelecionada < carros.size()) {
+                    String carroPlaca = carPlacaField.getText();
+                    String clienteCpf = (String) clientesComboBox.getSelectedItem();
+                    String valor = (String) carValorField.getText();
+                    operacoes.vender(carroPlaca, clienteCpf, valor);
+
+                    // Limpa as inputs
+                    carMarcaField.setText("");
+                    carModeloField.setText("");
+                    carAnoField.setText("");
+                    carPlacaField.setText("");
+                    carValorField.setText("");
+
+                    atualizarTabela();
+
+                    System.out.println("Venda concluída. Tabela carros atualizada.");
+                }
+
             }
         });
-        // Configura a ação do botão "cadastrar" para adicionar um novo registro no banco de dados
+
+        // Configura a ação do botão "cadastrar" para adicionar um novo registro no
+        // banco de dados
         cadastrar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                // Verifica se algum dos campos está vazio
+                if (carModeloField.getText().isEmpty() || carMarcaField.getText().isEmpty() || carPlacaField.getText().isEmpty()
+                        || carAnoField.getText().isEmpty() || carValorField.getText().isEmpty()) {
+                    // Verifica qual campo específico está vazio e mostra a mensagem de aviso
+                    if (carModeloField.getText().isEmpty()) {
+                        JOptionPane.showMessageDialog(null, "O campo 'Modelo' não pode estar vazio.");
+                        carModeloField.requestFocus();
+                    } else if (carMarcaField.getText().isEmpty()) {
+                        JOptionPane.showMessageDialog(null, "O campo 'Marca' não pode estar vazio.");
+                        carMarcaField.requestFocus();
+                    } else if (carPlacaField.getText().isEmpty()) {
+                        JOptionPane.showMessageDialog(null, "O campo 'Placa' não pode estar vazio.");
+                        carPlacaField.requestFocus();
+                    } else if (carAnoField.getText().isEmpty()) {
+                        JOptionPane.showMessageDialog(null, "O campo 'Ano' não pode estar vazio.");
+                        carAnoField.requestFocus();
+                    } else if (carValorField.getText().isEmpty()) {
+                        JOptionPane.showMessageDialog(null, "O campo 'Valor' não pode estar vazio.");
+                        carValorField.requestFocus();
+                    }
+                    return; // Sai do método se algum campo estiver vazio
+                }
+        
+                // Verificando se há dados em seus devidos lugares
+                try {
+                    // Tratando o campo 'Modelo'
+                    String modelo = carModeloField.getText();
+                    // Restante do bloco try para o campo 'Modelo'
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, "O campo 'Modelo' deve conter apenas letras.");
+                }
+        
+                try {
+                    // Tratando o campo 'Marca'
+                    String marca = carMarcaField.getText();
+                    // Restante do bloco try para o campo 'Marca'
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, "O campo 'Marca' deve conter apenas letras.");
+                }
+        
+                try {
+                    // Tratando o campo 'Placa'
+                    int placa = Integer.parseInt(carPlacaField.getText());
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(null, "O campo 'Placa' deve conter apenas números");
+                    carPlacaField.requestFocus();
+                    return;
+                }
+        
+                try {
+                    // Tratando o campo 'Ano'
+                    int ano = Integer.parseInt(carAnoField.getText());
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(null, "O campo 'Ano' deve conter apenas números");
+                    carAnoField.requestFocus();
+                    return;
+                }
+        
+                try {
+                    // Tratando o campo 'Valor'
+                    int valor = Integer.parseInt(carValorField.getText());
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(null, "O campo 'Valor' deve conter apenas números");
+                    carValorField.requestFocus();
+                    return;
+                }
+        
                 // Chama o método "cadastrar" do objeto operacoes com os valores dos campos de entrada
-
-                operacoes.cadastrar(carMarcaField.getText(), carModeloField.getText(),
-
-                        carAnoField.getText(), carPlacaField.getText(), carValorField.getText());
+                operacoes.cadastrar(carMarcaField.getText(), carModeloField.getText(), carAnoField.getText(),
+                        carPlacaField.getText(), carValorField.getText());
+        
                 // Limpa os campos de entrada após a operação de cadastro
                 carMarcaField.setText("");
                 carModeloField.setText("");
                 carAnoField.setText("");
                 carPlacaField.setText("");
                 carValorField.setText("");
+        
                 atualizarTabela();
-
-                //Atualiza os campos de entrada
+        
+                // Atualiza os campos de entrada
                 atualizarCamposEntrada();
             }
         });
-
-        // Configura a ação do botão "editar" para atualizar um registro no banco de dados
+        
+    
+        // Configura a ação do botão "editar" para atualizar um registro no banco de
+        // dados
         editar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Chama o método "atualizar" do objeto operacoes com os valores do campos de entrada
+                // Verifica se algum dos campos está vazio
+                if (carMarcaField.getText().isEmpty() || carModeloField.getText().isEmpty()
+                        || carAnoField.getText().isEmpty() || carPlacaField.getText().isEmpty()
+                        || carValorField.getText().isEmpty()) {
+                    // Verifica qual campo específico está vazio e mostra a mensagem de aviso
+                    // correspondente
+                    if (carMarcaField.getText().isEmpty()) {
+                        JOptionPane.showMessageDialog(null, "O campo 'Marca' não pode estar vazio.");
+                    } else if (carModeloField.getText().isEmpty()) {
+                        JOptionPane.showMessageDialog(null, "O campo 'Modelo' não pode estar vazio.");
+                    } else if (carAnoField.getText().isEmpty()) {
+                        JOptionPane.showMessageDialog(null, "O campo 'Ano' não pode estar vazio.");
+                    } else if (carPlacaField.getText().isEmpty()) {
+                        JOptionPane.showMessageDialog(null, "O campo 'Placa' não pode estar vazio.");
+                    } else if (carValorField.getText().isEmpty()) {
+                        JOptionPane.showMessageDialog(null, "O campo 'Valor' não pode estar vazio.");
+                    }
+                    return; // Sai do método se algum campo estiver vazio
+                }
+                // Chama o método "atualizar" do objeto operacoes com os valores do campos de
+                // entrada
 
                 operacoes.atualizar(carMarcaField.getText(), carModeloField.getText(),
 
@@ -177,8 +279,8 @@ public class JanelaCarros extends JPanel implements ClienteObserver{
                 carPlacaField.setText("");
                 carValorField.setText("");
                 atualizarTabela();
-                //Atualiza os campos de entrada
-               atualizarCamposEntrada();
+                // Atualiza os campos de entrada
+                atualizarCamposEntrada();
 
             }
         });
@@ -187,7 +289,8 @@ public class JanelaCarros extends JPanel implements ClienteObserver{
         apagar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Chama o método "apagar" do objeto operacoes com o valor do campo de entrada "placa"
+                // Chama o método "apagar" do objeto operacoes com o valor do campo de entrada
+                // "placa"
 
                 operacoes.apagar(carPlacaField.getText());
                 // Limpa os campos de entrada após a operação de exclusão
@@ -198,26 +301,25 @@ public class JanelaCarros extends JPanel implements ClienteObserver{
                 carValorField.setText("");
                 atualizarTabela();
 
-                 //Atualiza os campos de entrada
+                // Atualiza os campos de entrada
                 atualizarCamposEntrada();
             }
         });
 
-    
     }
 
-    //Método para atualizar campos de entrada
-        private void atualizarCamposEntrada(){
-            if (linhaSelecionada != -1 && linhaSelecionada < carros.size()) {
-                Carros carrosSelecionados = carros.get(linhaSelecionada);
-                carMarcaField.setText(carrosSelecionados.getMarca());
-                carModeloField.setText(carrosSelecionados.getModelo());
-                carAnoField.setText(carrosSelecionados.getAno());
-                carPlacaField.setText(carrosSelecionados.getPlaca());
-                carValorField.setText(carrosSelecionados.getValor());
-                
-            }
+    // Método para atualizar campos de entrada
+    private void atualizarCamposEntrada() {
+        if (linhaSelecionada != -1 && linhaSelecionada < carros.size()) {
+            Carros carrosSelecionados = carros.get(linhaSelecionada);
+            carMarcaField.setText(carrosSelecionados.getMarca());
+            carModeloField.setText(carrosSelecionados.getModelo());
+            carAnoField.setText(carrosSelecionados.getAno());
+            carPlacaField.setText(carrosSelecionados.getPlaca());
+            carValorField.setText(carrosSelecionados.getValor());
+
         }
+    }
 
     private void atualizarTabela() {
         tableModel.setRowCount(0);

@@ -52,7 +52,7 @@ public class CarrosDAO {
 
     /* Listar todos */
 
-    public List<Carros> listarTodos(){
+    public List<Carros> listarTodos() {
         PreparedStatement stmt = null;
         ResultSet rs = null;
         carros = new ArrayList<>();
@@ -63,17 +63,16 @@ public class CarrosDAO {
 
             while (rs.next()) {
                 Carros carro = new Carros(
-                rs.getString("marca"),
-                rs.getString("modelo"),
-                rs.getString("ano"),
-                rs.getString("placa"),
-                rs.getString("valor")
-                );
+                        rs.getString("marca"),
+                        rs.getString("modelo"),
+                        rs.getString("ano"),
+                        rs.getString("placa"),
+                        rs.getString("valor"));
                 carros.add(carro);
             }
         } catch (SQLException e) {
             System.out.println(e);
-        }finally{
+        } finally {
             ConnectionFactory.closeConnection(connection, stmt, rs);
         }
         return carros;
@@ -91,7 +90,7 @@ public class CarrosDAO {
             stmt.setString(2, modelo);
             stmt.setString(3, ano);
             stmt.setString(4, placa);
-            stmt.setString(5,valor);
+            stmt.setString(5, valor);
             stmt.executeUpdate();
             System.out.println("Dados inseridos com sucesso");
 
@@ -116,9 +115,10 @@ public class CarrosDAO {
             stmt.setString(4, placa);
             stmt.setString(5, valor);
             stmt.executeUpdate();
-            connection.setAutoCommit(true);
 
             System.out.println("Dados atualizados com sucesso");
+            connection.setAutoCommit(false);
+            connection.commit();
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao atualizar dados.", e);
         } finally {
@@ -135,36 +135,24 @@ public class CarrosDAO {
         String sqlApagarPelaPlaca = "DELETE FROM carros WHERE placa = ?";
 
         try {
-            int escolhaJO = JOptionPane.showConfirmDialog(null, message);
-            if (escolhaJO == JOptionPane.YES_OPTION) {
-                  stmt = connection.prepareStatement(sqlApagarPelaPlaca);
-            stmt.setString(1, placa);
-            stmt.executeUpdate();
-            }if (escolhaJO == JOptionPane.NO_OPTION) {
-                return;
+            // Verifica se a conexão está aberta
+            if (!connection.isClosed()) {
+                int escolhaJO = JOptionPane.showConfirmDialog(null, message);
+                if (escolhaJO == JOptionPane.YES_OPTION) {
+                    stmt = connection.prepareStatement(sqlApagarPelaPlaca);
+                    stmt.setString(1, placa);
+                    stmt.executeUpdate();
+                    System.out.println("Placa apagada com sucesso");
+                } else if (escolhaJO == JOptionPane.NO_OPTION) {
+                    return;
+                }
+            } else {
+                System.err.println("A conexão está fechada. Não é possível apagar.");
             }
-            System.out.println("Placa apagada com sucesso");
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao deletar pela placa", e);
         } finally {
             ConnectionFactory.closeConnection(connection, stmt);
         }
-    }
-
-    public void insertEmployee(String usuario, String senha) throws SQLException
-    {
-
-    String sqlInsertEmployee = "INSERT INTO employee (USUARIO, SENHA) VALUES (?,?)";
-    PreparedStatement stmt = connection.prepareStatement(sqlInsertEmployee);
-    try {
-    stmt.setString(1, usuario);
-    stmt.setString(2, senha);
-    stmt.executeUpdate();
-    System.out.println("Dados inseridos com sucesso.");
-    } catch (Exception e) {
-    throw new RuntimeException("Erro ao inserir dados.", e);
-    } finally {
-    ConnectionFactory.closeConnection(connection, stmt);
-    }
     }
 }
