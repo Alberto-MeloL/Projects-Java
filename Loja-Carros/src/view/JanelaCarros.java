@@ -296,7 +296,7 @@ public class JanelaCarros extends JPanel {
                 carPlacaField.setText("");
                 carValorField.setText("");
                 atualizarTabela();
-                
+                atualizarTabelaPesquisa(carros);
                 // Atualiza os campos de entrada
                 atualizarCamposEntrada();
             }
