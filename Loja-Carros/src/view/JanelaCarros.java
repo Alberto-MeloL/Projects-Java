@@ -33,6 +33,7 @@ import java.awt.GridLayout;
 public class JanelaCarros extends JPanel {
 
     private JButton cadastrar, apagar, editar, vender, buscar;
+
     private JComboBox<String> clientesComboBox;
     private JTextField carMarcaField, carModeloField, carAnoField, carPlacaField, carValorField, pesquisaCarrosField;
     private List<Carros> carros;
@@ -49,10 +50,7 @@ public class JanelaCarros extends JPanel {
         JPanel barraPesquisaPanel = new JPanel();
         clientesComboBox = new JComboBox<>();
         inputPanel.add(new JLabel("Cliente"));
-        List<String> listarClientes = new ClientesDAO().carregarClienteComboBox();
-        for (String cliente : listarClientes) {
-            clientesComboBox.addItem(cliente);
-        }
+
         //Barra de ferramentas
         JToolBar toolBar = new JToolBar();
         pesquisaCarrosField = new JTextField(20);

@@ -42,15 +42,6 @@ public class ClientesDAO {
         }
     }
 
-    public List<String> carregarClienteComboBox() {
-        List<Clientes> listarClientes = new ClientesDAO().listarTodosClientes();
-        List<String> comboBoxClientes = new ArrayList<>();
-
-        for (Clientes clientes : listarClientes) {
-            comboBoxClientes.add(clientes.getNome());
-        }
-        return comboBoxClientes;
-    }
     /* Listar todos */
 
     public List<Clientes> listarTodosClientes() {
