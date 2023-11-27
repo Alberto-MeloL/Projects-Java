@@ -3,6 +3,7 @@ package view;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.JToolBar;
 import javax.swing.table.DefaultTableModel;
 
 import connection.CarrosDAO;
@@ -26,25 +27,14 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
+import java.awt.BorderLayout;
 import java.awt.GridLayout;
 
-public class JanelaCarros extends JPanel implements ClienteObserver {
-    @Override
-    public void atualizarClientes() {
-        // Atualiza a lista de clientes aqui na interface gráfica
-        // Chame o método para carregar os clientes no JComboBox
-        List<String> listarClientes = new ClientesDAO().carregarClienteComboBox();
+public class JanelaCarros extends JPanel {
 
-        clientesComboBox.removeAllItems();
-
-        for (String cliente : listarClientes) {
-            clientesComboBox.addItem(cliente);
-        }
-    }
-
-    private JButton cadastrar, apagar, editar, vender;
+    private JButton cadastrar, apagar, editar, vender, buscar;
     private JComboBox<String> clientesComboBox;
-    private JTextField carMarcaField, carModeloField, carAnoField, carPlacaField, carValorField;
+    private JTextField carMarcaField, carModeloField, carAnoField, carPlacaField, carValorField, pesquisaCarrosField;
     private List<Carros> carros;
     private JTable table;
     private DefaultTableModel tableModel;
@@ -56,13 +46,18 @@ public class JanelaCarros extends JPanel implements ClienteObserver {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         add(new JLabel("Cadastro Carros"));
         JPanel inputPanel = new JPanel();
+        JPanel barraPesquisaPanel = new JPanel();
         clientesComboBox = new JComboBox<>();
         inputPanel.add(new JLabel("Cliente"));
         List<String> listarClientes = new ClientesDAO().carregarClienteComboBox();
         for (String cliente : listarClientes) {
             clientesComboBox.addItem(cliente);
         }
-
+        //Barra de ferramentas
+        JToolBar toolBar = new JToolBar();
+        pesquisaCarrosField = new JTextField(20);
+        toolBar.add(pesquisaCarrosField);
+        toolBar.add(buscar = new JButton("Buscar..."));
         inputPanel.add(clientesComboBox);
         inputPanel.setLayout(new GridLayout(3, 3));
         inputPanel.add(new JLabel("Marca"));
@@ -87,6 +82,8 @@ public class JanelaCarros extends JPanel implements ClienteObserver {
         botoes.add(apagar = new JButton("Apagar"));
         botoes.add(vender = new JButton("Vender"));
         add(botoes);
+        add(toolBar, BorderLayout.SOUTH);
+
         // tabela de carros
         JScrollPane jSPane = new JScrollPane();
         add(jSPane);
@@ -157,7 +154,8 @@ public class JanelaCarros extends JPanel implements ClienteObserver {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Verifica se algum dos campos está vazio
-                if (carModeloField.getText().isEmpty() || carMarcaField.getText().isEmpty() || carPlacaField.getText().isEmpty()
+                if (carModeloField.getText().isEmpty() || carMarcaField.getText().isEmpty()
+                        || carPlacaField.getText().isEmpty()
                         || carAnoField.getText().isEmpty() || carValorField.getText().isEmpty()) {
                     // Verifica qual campo específico está vazio e mostra a mensagem de aviso
                     if (carModeloField.getText().isEmpty()) {
@@ -178,7 +176,7 @@ public class JanelaCarros extends JPanel implements ClienteObserver {
                     }
                     return; // Sai do método se algum campo estiver vazio
                 }
-        
+
                 // Verificando se há dados em seus devidos lugares
                 try {
                     // Tratando o campo 'Modelo'
@@ -187,7 +185,7 @@ public class JanelaCarros extends JPanel implements ClienteObserver {
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(null, "O campo 'Modelo' deve conter apenas letras.");
                 }
-        
+
                 try {
                     // Tratando o campo 'Marca'
                     String marca = carMarcaField.getText();
@@ -195,7 +193,7 @@ public class JanelaCarros extends JPanel implements ClienteObserver {
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(null, "O campo 'Marca' deve conter apenas letras.");
                 }
-        
+
                 try {
                     // Tratando o campo 'Placa'
                     int placa = Integer.parseInt(carPlacaField.getText());
@@ -204,7 +202,7 @@ public class JanelaCarros extends JPanel implements ClienteObserver {
                     carPlacaField.requestFocus();
                     return;
                 }
-        
+
                 try {
                     // Tratando o campo 'Ano'
                     int ano = Integer.parseInt(carAnoField.getText());
@@ -213,7 +211,7 @@ public class JanelaCarros extends JPanel implements ClienteObserver {
                     carAnoField.requestFocus();
                     return;
                 }
-        
+
                 try {
                     // Tratando o campo 'Valor'
                     int valor = Integer.parseInt(carValorField.getText());
@@ -222,26 +220,26 @@ public class JanelaCarros extends JPanel implements ClienteObserver {
                     carValorField.requestFocus();
                     return;
                 }
-        
-                // Chama o método "cadastrar" do objeto operacoes com os valores dos campos de entrada
+
+                // Chama o método "cadastrar" do objeto operacoes com os valores dos campos de
+                // entrada
                 operacoes.cadastrar(carMarcaField.getText(), carModeloField.getText(), carAnoField.getText(),
-                        carPlacaField.getText(), carValorField.getText());
-        
+                        (String)carPlacaField.getText(), (String)carValorField.getText());
+
                 // Limpa os campos de entrada após a operação de cadastro
                 carMarcaField.setText("");
                 carModeloField.setText("");
                 carAnoField.setText("");
                 carPlacaField.setText("");
                 carValorField.setText("");
-        
+
                 atualizarTabela();
-        
+
                 // Atualiza os campos de entrada
                 atualizarCamposEntrada();
             }
         });
-        
-    
+
         // Configura a ação do botão "editar" para atualizar um registro no banco de
         // dados
         editar.addActionListener(new ActionListener() {
@@ -300,11 +298,30 @@ public class JanelaCarros extends JPanel implements ClienteObserver {
                 carPlacaField.setText("");
                 carValorField.setText("");
                 atualizarTabela();
-
+                
                 // Atualiza os campos de entrada
                 atualizarCamposEntrada();
             }
         });
+
+        buscar.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Obtenha o termo de pesquisa da caixa de pesquisa
+                String termoPesquisa = pesquisaCarrosField.getText();
+        
+                // Verifique se o termo não está vazio
+                if (!termoPesquisa.isEmpty()) {
+                    List<Carros> carrosEncontrados = new CarrosDAO().buscarCarros(termoPesquisa);
+                    atualizarTabelaPesquisa(carrosEncontrados);
+                } else {
+                    // Se o termo estiver vazio, atualize a tabela com todos os carros
+                    atualizarTabela();
+                    JOptionPane.showMessageDialog(null, "Digite um termo de pesquisa.");
+                }
+            }
+        });
+        
 
     }
 
@@ -321,6 +338,16 @@ public class JanelaCarros extends JPanel implements ClienteObserver {
         }
     }
 
+    //Método para atualizar a tabela conforme o busca
+    private void atualizarTabelaPesquisa(List<Carros> carros) {
+tableModel.setRowCount(0);;
+
+for (Carros carros2 : carros) {
+    tableModel.addRow(new Object[]{
+        carros2.getMarca(), carros2.getModelo(), carros2.getAno(), carros2.getPlaca(), carros2.getValor()
+    });
+}
+    }
     private void atualizarTabela() {
         tableModel.setRowCount(0);
         carros = new CarrosDAO().listarTodos();

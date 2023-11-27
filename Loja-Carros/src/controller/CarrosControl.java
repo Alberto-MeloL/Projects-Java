@@ -46,8 +46,7 @@ public void vender(String carroPlaca, String clienteCpf, String valor){
     }
 
     // Método para cadastrar um novo carro no banco de dados
-    public void cadastrar(String marca, String modelo, String ano, String placa,
-            String valor) {
+    public void cadastrar(String marca, String modelo, String ano, String placa,String valor) {
         new CarrosDAO().cadastrar(marca, modelo, ano, placa, valor);
         
         // Chama o método de cadastro no banco de dados

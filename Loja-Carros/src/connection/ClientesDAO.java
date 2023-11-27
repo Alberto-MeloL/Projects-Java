@@ -1,7 +1,6 @@
 package connection;
 
 import model.Clientes;
-import view.ClienteObserver;
 import view.JanelaCarros;
 
 import java.sql.Connection;
@@ -18,22 +17,14 @@ public class ClientesDAO {
 
     private Connection connection;
     private List<Clientes> clientes;
-    private List<ClienteObserver> observadores = new ArrayList<>();
 
     public ClientesDAO() {
 
         this.connection = ConnectionFactory.getConnection();
+        System.out.println("Conexão 'ClientesDAO' estabelecida.");
     }
     /* Métodos */
 
-    public void adicionarObservador(ClienteObserver observador){
-        observadores.add(observador);
-    }
-    public void notificarObservadores(){
-        for (ClienteObserver observador : observadores) {
-            observador.atualizarClientes();
-        }
-    }
     public void criarTabelaCliente() {
 
         String sqlCriarTabelaCliente = "CREATE TABLE IF NOT EXISTS clientes (ID SERIAL PRIMARY KEY,NOME VARCHAR(255), CPF VARCHAR(255), IDADE VARCHAR(255),TELEFONE VARCHAR(255),ENDERECO VARCHAR(255))";
@@ -42,7 +33,7 @@ public class ClientesDAO {
             /* Ejetor de código SQL */
 
             stmt.execute(sqlCriarTabelaCliente); /* Código a ser executado */
-            System.out.println("Tabela criada com sucesso.");
+            System.out.println("Tabela 'clientes' criada com sucesso!");
         } catch (Exception e) {
             throw new RuntimeException("Erro ao criar a tabela:" + e.getMessage(), e);
         } finally {
@@ -102,7 +93,6 @@ public class ClientesDAO {
             stmt.setString(4, telefone);
             stmt.setString(5, endereco);
             stmt.executeUpdate();
-            notificarObservadores();//Notoficar os observadores ao cadastrar um cliente
             System.out.println("Dados inseridos com sucesso");
 
         } catch (SQLException e) {
@@ -150,7 +140,6 @@ public class ClientesDAO {
                 stmt = connection.prepareStatement(sqlApagarPeloCpf);
                 stmt.setString(1, cpf);
                 stmt.executeUpdate();
-                notificarObservadores();//Notificar observadores aoo apagar um cliente
             }
             if (escolhaJO == JOptionPane.NO_OPTION) {
                 return;

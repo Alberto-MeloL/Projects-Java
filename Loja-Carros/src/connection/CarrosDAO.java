@@ -29,19 +29,23 @@ public class CarrosDAO {
 
         this.connection = ConnectionFactory.getConnection();
 
+        // Inicializando carros
+        this.carros = new ArrayList<>();
+        System.out.println("Conexão 'CarrosDAO' estabelecida.");
+
     }
 
     /* Métodos */
 
     public void criarTabela() {
 
-        String sqlCriarTabela = "CREATE TABLE IF NOT EXISTS carros (ID SERIAL PRIMARY KEY,MARCA VARCHAR(255), MODELO VARCHAR(255), ANO VARCHAR(255),PLACA VARCHAR(255),VALOR VARCHAR(255))";
+        String sqlCriarTabela = "CREATE TABLE IF NOT EXISTS tabela_carros (MARCA VARCHAR(255), MODELO VARCHAR(255), ANO VARCHAR(255),PLACA VARCHAR(255) PRIMARY KEY,VALOR VARCHAR(255))";
 
         try (Statement stmt = this.connection.createStatement()) {
             /* Ejetor de código SQL */
 
             stmt.execute(sqlCriarTabela); /* Código a ser executado */
-            System.out.println("Tabela criada com sucesso.");
+            System.out.println("Tabela 'tabela_carros' criada com sucesso!");
         } catch (Exception e) {
             throw new RuntimeException("Erro ao criar a tabela:" + e.getMessage(), e);
         } finally {
@@ -58,7 +62,7 @@ public class CarrosDAO {
         carros = new ArrayList<>();
 
         try {
-            stmt = connection.prepareStatement("SELECT * FROM carros");
+            stmt = connection.prepareStatement("SELECT * FROM tabela_carros");
             rs = stmt.executeQuery();
 
             while (rs.next()) {
@@ -78,10 +82,49 @@ public class CarrosDAO {
         return carros;
     }
 
+    /* Listar pesquisas */
+    public List<Carros> buscarCarros(String termoPesquisa) {
+        List<Carros> carrosEncontrados = new ArrayList<>();
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+    
+        try {
+            // Utilize uma consulta SQL parametrizada para realizar a pesquisa no banco de dados
+            String sql = "SELECT * FROM tabela_carros WHERE marca LIKE ? OR modelo LIKE ? OR ano LIKE ? OR placa LIKE ? OR valor LIKE ?";
+            stmt = connection.prepareStatement(sql);
+    
+            // Configurar os parâmetros da consulta com base no termo de pesquisa
+            String termoSql = "%" + termoPesquisa + "%";
+            for (int i = 1; i <= 5; i++) {
+                stmt.setString(i, termoSql);
+            }
+    
+            rs = stmt.executeQuery();
+    
+            // Processar os resultados da consulta e adicionar os carros encontrados à lista
+            while (rs.next()) {
+                Carros carro = new Carros(
+                        rs.getString("marca"),
+                        rs.getString("modelo"),
+                        rs.getString("ano"),
+                        rs.getString("placa"),
+                        rs.getString("valor"));
+                carrosEncontrados.add(carro);
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        } finally {
+            ConnectionFactory.closeConnection(connection, stmt, rs);
+        }
+    
+        return carrosEncontrados;
+    }
+    
+
     public void cadastrar(String marca, String modelo, String ano, String placa, String valor) {
         PreparedStatement stmt = null;
 
-        String sqlCadastrarCarro = "INSERT INTO carros (marca, modelo, ano, placa, valor) VALUES (?,?,?,?,?)";
+        String sqlCadastrarCarro = "INSERT INTO tabela_carros (marca, modelo, ano, placa, valor) VALUES (?,?,?,?,?)";
 
         try {
             stmt = connection.prepareStatement(sqlCadastrarCarro);
@@ -92,6 +135,8 @@ public class CarrosDAO {
             stmt.setString(4, placa);
             stmt.setString(5, valor);
             stmt.executeUpdate();
+            connection.setAutoCommit(false);
+            connection.commit();
             System.out.println("Dados inseridos com sucesso");
 
         } catch (SQLException e) {
@@ -105,7 +150,7 @@ public class CarrosDAO {
     public void atualizar(String marca, String modelo, String ano, String placa, String valor) {
         PreparedStatement stmt = null;
 
-        String sqlAtualizarDados = "UPDATE carros SET marca = ?, modelo = ?, ano = ?, valor = ? WHERE placa = ?";
+        String sqlAtualizarDados = "UPDATE tabela_carros SET marca = ?, modelo = ?, ano = ?, valor = ? WHERE placa = ?";
 
         try {
             stmt = connection.prepareStatement(sqlAtualizarDados);
@@ -131,9 +176,9 @@ public class CarrosDAO {
     public void apagar(String placa) {
         String message = "Deseja realmente deletar esse carro?";
         PreparedStatement stmt = null;
-
-        String sqlApagarPelaPlaca = "DELETE FROM carros WHERE placa = ?";
-
+    
+        String sqlApagarPelaPlaca = "DELETE FROM tabela_carros WHERE placa = ?";
+    
         try {
             // Verifica se a conexão está aberta
             if (!connection.isClosed()) {
@@ -142,12 +187,12 @@ public class CarrosDAO {
                     stmt = connection.prepareStatement(sqlApagarPelaPlaca);
                     stmt.setString(1, placa);
                     stmt.executeUpdate();
-                    System.out.println("Placa apagada com sucesso");
                 } else if (escolhaJO == JOptionPane.NO_OPTION) {
-                    return;
+                    JOptionPane.showMessageDialog(null, "Operação de exclusão cancelada pelo usuário.");
+                    System.out.println("Operação de exclusão cancelada pelo usuário.");
+                } else {
+                    System.out.println("Nenhum registro encontrado com a placa especificada.");
                 }
-            } else {
-                System.err.println("A conexão está fechada. Não é possível apagar.");
             }
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao deletar pela placa", e);
@@ -155,4 +200,6 @@ public class CarrosDAO {
             ConnectionFactory.closeConnection(connection, stmt);
         }
     }
+    
+
 }

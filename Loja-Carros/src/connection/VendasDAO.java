@@ -10,6 +10,7 @@ public class VendasDAO {
 
     public VendasDAO() {
         this.connection = ConnectionFactory.getConnection();
+        System.out.println("Conexão 'VandasDAO' etabelecida");
     }
 
     public void criarTabelaVendas() {
@@ -20,7 +21,7 @@ public class VendasDAO {
             /* Ejetor de código SQL */
 
             stmt.execute(sqlCriarTabelaVendas); /* Código a ser executado */
-            System.out.println("Tabela criada com sucesso.");
+            System.out.println("Tabela 'vendas' craida com sucesso!");
         } catch (Exception e) {
             throw new RuntimeException("Erro ao criar a tabela:" + e.getMessage(), e);
         } finally {
